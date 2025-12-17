@@ -122,19 +122,21 @@ body::before {
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1rem;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: var(--bg-glass);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    color: white;
+    color: var(--text-primary);
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
     transition: all var(--transition-normal);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .stock-signal-header-link:hover {
+    background: var(--bg-glass-hover);
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-glow);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 .stock-signal-header-link .link-icon {
