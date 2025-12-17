@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PDF 파일을 Markdown으로 간편하게 변환하세요. 링크 보존, 자동 파일명 생성 지원.">
+    <title>PDF to Markdown Converter</title>
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">📄</span>
+                <h1>PDF to Markdown</h1>
+            </div>
+            <p class="tagline">PDF 파일을 깔끔한 Markdown으로 변환하세요</p>
+        </header>
+
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="single">단일 파일 변환</button>
+            <button class="mode-tab" data-mode="batch">여러 파일 일괄 변환</button>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Single File Mode -->
+            <div class="mode-content active" id="singleMode">
+                <!-- Upload Section -->
+                <section class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                            </div>
+                            <p class="upload-text">PDF 파일을 여기에 드래그하세요</p>
+                            <p class="upload-subtext">또는 클릭하여 파일 선택</p>
+                            <span class="upload-badge">PDF only</span>
+                        </div>
+                        <input type="file" id="fileInput" accept=".pdf" hidden>
+                    </div>
+
+                    <!-- File Info -->
+                    <div class="file-info" id="fileInfo">
+                        <div class="file-icon">📎</div>
+                        <div class="file-details">
+                            <span class="file-name" id="fileName"></span>
+                            <span class="file-size" id="fileSize"></span>
+                        </div>
+                        <button class="remove-btn" id="removeBtn">✕</button>
+                    </div>
+
+                    <!-- Convert Button -->
+                    <button class="convert-btn" id="convertBtn" disabled>
+                        <span class="btn-text">변환하기</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p class="progress-text" id="progressText">PDF 분석 중...</p>
+                    </div>
+                </section>
+
+                <!-- Result Section -->
+                <section class="result-section" id="resultSection">
+                    <div class="result-header">
+                        <h2>📝 변환 결과</h2>
+                        <div class="result-filename" id="resultFilename"></div>
+                    </div>
+
+                    <!-- Preview Tabs -->
+                    <div class="preview-tabs">
+                        <button class="tab-btn active" data-tab="markdown">Markdown</button>
+                        <button class="tab-btn" data-tab="preview">미리보기</button>
+                    </div>
+
+                    <!-- Markdown Output -->
+                    <div class="output-container">
+                        <div class="tab-content active" id="markdownTab">
+                            <pre class="markdown-output" id="markdownOutput"></pre>
+                        </div>
+                        <div class="tab-content" id="previewTab">
+                            <div class="preview-output" id="previewOutput"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="action-btn copy-btn" id="copyBtn">
+                            <span class="action-icon">📋</span>
+                            <span>클립보드에 복사</span>
+                        </button>
+                        <button class="action-btn download-btn" id="downloadBtn">
+                            <span class="action-icon">💾</span>
+                            <span>다운로드</span>
+                        </button>
+                    </div>
+
+                    <!-- Stock Signal Upload Section (Single Mode) -->
+                    <div class="stock-signal-section">
+                        <button class="stock-signal-btn" id="singleStockSignalBtn">
+                            <span class="stock-signal-icon">📊</span>
+                            <span>Stock Signal에 추가하기</span>
+                        </button>
+                        <div class="stock-signal-progress" id="singleStockSignalProgress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="singleStockSignalProgressFill"></div>
+                            </div>
+                            <p class="progress-text" id="singleStockSignalProgressText">업로드 중...</p>
+                        </div>
+                        <div class="stock-signal-result" id="singleStockSignalResult">
+                            <span class="result-icon" id="singleStockSignalResultIcon">✅</span>
+                            <span class="result-text" id="singleStockSignalResultText"></span>
+                            <a href="https://evening-search.vercel.app/" target="_blank" class="stock-signal-link"
+                                id="singleStockSignalLink">
+                                Stock Signal 열기 →
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Batch Mode -->
+            <div class="mode-content" id="batchMode">
+                <section class="upload-section">
+                    <!-- Batch Upload Area -->
+                    <div class="upload-area batch-upload" id="batchUploadArea">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                            </div>
+                            <p class="upload-text">PDF 또는 ZIP 파일을 드래그하세요</p>
+                            <p class="upload-subtext">또는 클릭하여 파일 선택 (다중 선택 가능)</p>
+                            <span class="upload-badge">PDF / ZIP</span>
+                        </div>
+                        <input type="file" id="batchFileInput" accept=".pdf,.zip" multiple hidden>
+                    </div>
+
+                    <!-- ZIP Loading Indicator -->
+                    <div class="zip-loading" id="zipLoading">
+                        <div class="zip-loading-spinner"></div>
+                        <span class="zip-loading-text" id="zipLoadingText">ZIP 파일 처리 중...</span>
+                    </div>
+
+                    <!-- Batch File List -->
+                    <div class="batch-file-list" id="batchFileList">
+                        <div class="batch-file-header">
+                            <span class="batch-count" id="batchCount">0개 파일 선택됨</span>
+                            <button class="clear-all-btn" id="clearAllBtn">전체 삭제</button>
+                        </div>
+                        <div class="batch-files" id="batchFiles"></div>
+                    </div>
+
+                    <!-- Save Folder Selection -->
+                    <div class="folder-selection" id="folderSelection">
+                        <label class="folder-label">저장 위치</label>
+                        <div class="folder-input-group">
+                            <button class="folder-btn" id="selectFolderBtn">
+                                <span class="folder-icon">📁</span>
+                                <span id="folderPath">폴더 선택...</span>
+                            </button>
+                            <span class="folder-note" id="folderNote">Chrome/Edge에서 폴더 선택 가능. 미지원 브라우저는 ZIP 다운로드</span>
+                        </div>
+                    </div>
+
+                    <!-- Batch Convert Button -->
+                    <button class="convert-btn batch-convert-btn" id="batchConvertBtn" disabled>
+                        <span class="btn-text">변환하여 저장하기</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+
+                    <!-- Batch Progress -->
+                    <div class="progress-container" id="batchProgressContainer">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="batchProgressFill"></div>
+                        </div>
+                        <p class="progress-text" id="batchProgressText">변환 중...</p>
+                    </div>
+
+                    <!-- Batch Result -->
+                    <div class="batch-result" id="batchResult">
+                        <div class="batch-result-icon">✅</div>
+                        <h3>변환 완료!</h3>
+                        <p class="batch-result-text" id="batchResultText"></p>
+
+                        <!-- Stock Signal Upload Section -->
+                        <div class="stock-signal-section">
+                            <button class="stock-signal-btn" id="stockSignalBtn">
+                                <span class="stock-signal-icon">📊</span>
+                                <span>Stock Signal에 추가하기</span>
+                            </button>
+                            <div class="stock-signal-progress" id="stockSignalProgress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="stockSignalProgressFill"></div>
+                                </div>
+                                <p class="progress-text" id="stockSignalProgressText">업로드 중...</p>
+                            </div>
+                            <div class="stock-signal-result" id="stockSignalResult">
+                                <span class="result-icon" id="stockSignalResultIcon">✅</span>
+                                <span class="result-text" id="stockSignalResultText"></span>
+                                <a href="https://evening-search.vercel.app/" target="_blank" class="stock-signal-link"
+                                    id="stockSignalLink">
+                                    Stock Signal 열기 →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>모든 변환은 브라우저에서 처리됩니다. 파일이 서버로 전송되지 않습니다.</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+
+    <script src="modules/pdf-parser.js"></script>
+    <script src="modules/markdown-generator.js"></script>
+    <script src="modules/filename-generator.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
