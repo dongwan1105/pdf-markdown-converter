@@ -212,12 +212,6 @@ class MarkdownGenerator {
         // 기사 내용과 다음 종목 사이 가독성 향상
         markdown = markdown.replace(/\n(●|◆|★|■|▶|►)/g, '\n\n$1');
 
-        // 기사 제목(마크다운 링크) 앞뒤에 줄바꿈 추가
-        // [제목](URL) 형식 앞에 줄바꿈 (이미 줄바꿈이 있으면 제외)
-        markdown = markdown.replace(/([^\n])\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1\n[$2]($3)');
-        // [제목](URL) 형식 뒤에 줄바꿈 (이미 줄바꿈이 있으면 제외)
-        markdown = markdown.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)([^\n])/g, '[$1]($2)\n$3');
-
         // 연속된 빈 줄은 최대 2개로 제한
         markdown = markdown.replace(/\n{3,}/g, '\n\n');
 
